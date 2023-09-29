@@ -84,7 +84,7 @@ CREATE TABLE `Recipes` (
   `isHealthy` tinyint(1) DEFAULT NULL,
   `cuisine` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -93,7 +93,6 @@ CREATE TABLE `Recipes` (
 
 LOCK TABLES `Recipes` WRITE;
 /*!40000 ALTER TABLE `Recipes` DISABLE KEYS */;
-INSERT INTO `Recipes` VALUES (9,'food','','http://127.0.0.1:5000/images/wallhaven-ymgpkd.jpg','',0,'Chinese');
 /*!40000 ALTER TABLE `Recipes` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -268,4 +267,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-09-28  3:31:19
+-- Dump completed on 2023-09-28 20:49:32

@@ -1,9 +1,10 @@
 from flask import Flask, request, make_response, jsonify,json
 import dbhelper,apihelper,dbcreds, uuid
+from flask_cors import CORS, cross_origin
 
 
 app = Flask(__name__)
-
+CORS(app, resources={r"/api/*": {"origins": "https://tastetroveapi.cameron-ord.online"}})
 
 class RecipeApi:
     def __init__(self):
@@ -47,7 +48,9 @@ class RecipeApi:
 
 
     @app.get('/api/searchByCuisine')
+    @cross_origin()
     def searchByCuisine():
+        
         error = apihelper.check_endpoint_info(request.args, ['cuisine'])
         if(error != None):
             return make_response(jsonify(error), 400)
@@ -89,7 +92,10 @@ class RecipeApi:
             filename = apihelper.save_file(file)
             if filename is None:
                 return make_response(jsonify("Sorry, something has gone wrong"), 500)
-            result = dbhelper.run_proceedure('CALL createRecipe(?,?,?,?,?,?)', [request.form.get('title'), request.form.get('desc'), request.form.get('image_url') ,request.form.get('ingredients'), request.form.get('isHealthy'), request.form.get('cuisine')])
+            
+            if filename:
+                concatURL = request.form.get('image_url') + filename
+            result = dbhelper.run_proceedure('CALL createRecipe(?,?,?,?,?,?)', [request.form.get('title'), request.form.get('desc'), concatURL ,request.form.get('ingredients'), request.form.get('isHealthy'), request.form.get('cuisine')])
             #if the task is sucessful, appends a success message to the empty results list and then returns the results
             if (type(results)==list):
                 results.append('Success')
@@ -102,19 +108,21 @@ class RecipeApi:
     def initObj(self):
         print('initialized..')
 
+
+
 if __name__ == "__main__":
     ObjectInst = RecipeApi()
     ObjectInst.initObj()
 
 if(dbcreds.production_mode == True):
-   print()
-   print('----Running in Production Mode----')
-   print()
-   import bjoern #type: ignore
-   bjoern.run(app,'0.0.0.0', 5450)
+    print()
+    print('----Running in Production Mode----')
+    print()
+    import bjoern #type: ignore
+    bjoern.run(app,'0.0.0.0', 5301)
 else:
    from flask_cors import CORS
-   CORS(app)
+   CORS(app, resources={r"/api/*": {"origins": "https://tastetroveapi.cameron-ord.online"}})
    print()
    print('----Running in Testing Mode----')
    print()
