@@ -10,11 +10,47 @@ class RecipeApi:
     def __init__(self):
         print('initializing..')
 
+    @app.post('/api/clientLogin')
+    def clientLogin():
+        error = apihelper.check_endpoint_info(request.json, ['username', 'password'])
+        if(error != None):
+            return make_response(jsonify(error), 400)
+        results = dbhelper.run_procedure('CALL clientLogin(?,?)',
+                                         [request.json.get('username'), request.json.get('password')])
+        if type(results) == list:
+            return make_response(jsonify(results), 200)
+        else:
+            return make_response(jsonify(results), 400)
+        
+    @app.post('/api/adminLogin')
+    def adminLogin():
+        error = apihelper.check_endpoint_info(request.json, ['username', 'password'])
+        if(error != None):
+            return make_response(jsonify(error), 400)
+        results = dbhelper.run_procedure('CALL adminLogin(?,?)',
+                                         [request.json.get('username'), request.json.get('password')])
+        if type(results) == list:
+            return make_response(jsonify(results), 200)
+        else:
+            return make_response(jsonify(results), 400)
+            
+    @app.get('/api/getNutritionalProfile')
+    def createNutritionalProfile():
+        error = apihelper.check_endpoint_info(request.args, ['recipe_id'])
+        if(error != None):
+            return make_response(jsonify(error),400)
+        results = dbhelper.run_procedure('CALL getNutrition(?)',
+                                         [request.args.get('recipe_id')])
+        if type(results) == list:
+            return make_response(jsonify(results),200)
+        else:
+            return make_response(jsonify(results),400)
+        
     
     @app.post('/api/createNutrionalProfile')
     def createNutritionalProfile():
         error = apihelper.check_endpoint_info(request.json, ['recipe_id, protein, fat, carbs, calories, saturatedfat, sugars, salt'])
-        if(error):
+        if(error != None):
             return make_response(jsonify(error), 400)
         results = dbhelper.run_procedure('CALL createNutritionalProfile (?,?,?,?,?,?,?,?)',
             [request.json.get('recipe_id'), request.json.get('protein'), request.json.get('fat'), request.json.get('carbs'),request.json.get('calories'), request.json.get('saturatedfat'), request.json.get('sugars'), request.json.get('salt')])
@@ -26,7 +62,7 @@ class RecipeApi:
     @app.get('/api/getInstructions')
     def getInstructions():
         error = apihelper.check_endpoint_info(request.args, ['id'])
-        if(error):
+        if(error != None):
             return make_response(jsonify(error), 400)
         results = dbhelper.run_procedure('CALL getInstructions(?)',
                                           [request.args.get('id')])
