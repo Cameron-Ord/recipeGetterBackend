@@ -16,7 +16,7 @@ class RecipeApi:
         error = apihelper.check_endpoint_info(request.json, ['recipe_id, protein, fat, carbs, calories, saturatedfat, sugars, salt'])
         if(error):
             return make_response(jsonify(error), 400)
-        results = dbhelper.run_proceedure('CALL createNutritionalProfile (?,?,?,?,?,?,?,?)',
+        results = dbhelper.run_procedure('CALL createNutritionalProfile (?,?,?,?,?,?,?,?)',
             [request.json.get('recipe_id'), request.json.get('protein'), request.json.get('fat'), request.json.get('carbs'),request.json.get('calories'), request.json.get('saturatedfat'), request.json.get('sugars'), request.json.get('salt')])
         if type(results) == list:
             return make_response(jsonify(results), 200)
@@ -28,7 +28,7 @@ class RecipeApi:
         error = apihelper.check_endpoint_info(request.args, ['id'])
         if(error):
             return make_response(jsonify(error), 400)
-        results = dbhelper.run_proceedure('CALL getInstructions(?)',
+        results = dbhelper.run_procedure('CALL getInstructions(?)',
                                           [request.args.get('id')])
         if type(results) == list:
             return make_response(jsonify(results),200)
@@ -40,7 +40,7 @@ class RecipeApi:
         error = apihelper.check_endpoint_info(request.json, ['recipeId', 'recipeprep', 'cooking', 'methods'])
         if(error !=None):
             return make_response(jsonify(error), 400)
-        results = dbhelper.run_proceedure('CALL createInstructions(?,?,?,?)', 
+        results = dbhelper.run_procedure('CALL createInstructions(?,?,?,?)', 
                                           [request.json.get('recipeId'), request.json.get('recipeprep'), request.json.get('cooking'), request.json.get('methods')])
         if type(results) == list:
             return make_response(jsonify(results),200)
@@ -52,7 +52,7 @@ class RecipeApi:
         error = apihelper.check_endpoint_info(request.args, ['title'])
         if(error != None):
             return make_response(jsonify(error), 400)
-        results = dbhelper.run_proceedure('CALL searchRecipe(?)', 
+        results = dbhelper.run_procedure('CALL searchRecipe(?)', 
                                         [request.args.get('title')])
         if type(results) == list:
             return make_response(jsonify(results), 200)
@@ -67,7 +67,7 @@ class RecipeApi:
         error = apihelper.check_endpoint_info(request.args, ['cuisine'])
         if(error != None):
             return make_response(jsonify(error), 400)
-        results = dbhelper.run_proceedure('CALL searchByCuisine(?)', 
+        results = dbhelper.run_procedure('CALL searchByCuisine(?)', 
                                           [request.args.get('cuisine')])
         if type(results) == list:
             return make_response(jsonify(results), 200)
@@ -79,7 +79,7 @@ class RecipeApi:
         error = apihelper.check_endpoint_info(request.args, ['name'])
         if(error != None):
             return make_response(jsonify(error), 400)
-        results = dbhelper.run_proceedure('CALL getRecipeById(?)', 
+        results = dbhelper.run_procedure('CALL getRecipeById(?)', 
                                          [request.args.get('name')])
         if type(results) == list:
             return make_response(jsonify(results),200)
@@ -108,7 +108,7 @@ class RecipeApi:
             
             if filename:
                 concatURL = request.form.get('image_url') + filename
-            result = dbhelper.run_proceedure('CALL createRecipe(?,?,?,?,?,?)', [request.form.get('title'), request.form.get('desc'), concatURL ,request.form.get('ingredients'), request.form.get('isHealthy'), request.form.get('cuisine')])
+            result = dbhelper.run_procedure('CALL createRecipe(?,?,?,?,?,?)', [request.form.get('title'), request.form.get('desc'), concatURL ,request.form.get('ingredients'), request.form.get('isHealthy'), request.form.get('cuisine')])
             #if the task is sucessful, appends a success message to the empty results list and then returns the results
             if (type(results)==list):
                 results.append('Success')

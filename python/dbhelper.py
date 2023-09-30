@@ -9,7 +9,7 @@ def convert_data(cursor, results):
     return new_results
 
 #function that gets called on each request using args based on which request was called
-def run_proceedure(sql, args):
+def run_procedure(sql, args):
     try:
         #connecting to the DB/making results = None so if it does become defined by following code, it will end the connection.
         results = None
