@@ -79,7 +79,7 @@ class RecipeApi:
         error = apihelper.check_endpoint_info(request.args, ['name'])
         if(error != None):
             return make_response(jsonify(error), 400)
-        results = dbhelper.run_procedure('CALL getRecipeById(?)', 
+        results = dbhelper.run_procedure('CALL getRecipeId(?)', 
                                          [request.args.get('name')])
         if type(results) == list:
             return make_response(jsonify(results),200)
