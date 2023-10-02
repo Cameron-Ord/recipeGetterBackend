@@ -1,5 +1,5 @@
 from flask import Flask, request, make_response, jsonify,json
-import dbhelper,apihelper,dbcreds, uuid
+import dbhelper,apihelper,dbcreds, uuid,bcrypt
 from flask_cors import CORS, cross_origin
 
 
@@ -10,14 +10,24 @@ class RecipeApi:
     def __init__(self):
         print('initializing..')
 
+    def validatePW(self,pwHashInput,usernameInput):
+        results = dbhelper.run_procedure('CALL getHashedPw(?)',
+                                         [usernameInput])
+        if type(results) == list:
+            if pwHashInput:
+                return bcrypt.checkpw(results[0]['password'].encode('utf-8'), pwHashInput)
+            
+    
     @app.post('/api/clientSignup')
     def clientSignup():
         error = apihelper.check_endpoint_info(request.json, ['username', 'password', 'email'])
         if(error != None):
             return make_response(jsonify(error), 400)
-        generatedToken = uuid.uuid4.hex()
-        results = dbhelper.run_procedure('CALL clientLogin(?,?,?,?)',
-                                         [request.json.get('username'), request.json.get('password'), request.json.get('email'), generatedToken])
+        salt = bcrypt.gensalt()
+        hashed_pw = bcrypt.hashpw(request.json.get('password').encode('utf8'), salt)
+        generatedToken = uuid.uuid4().hex
+        results = dbhelper.run_procedure('CALL clientSignup(?,?,?)',
+                                         [request.json.get('username'), hashed_pw , request.json.get('email')])
         if type(results) == list:
             return make_response(jsonify(results), 200)
         else:
@@ -30,7 +40,7 @@ class RecipeApi:
         if(error != None):
             return make_response(jsonify(error), 400)
 
-        generatedKey = uuid.uuid4.hex()
+        generatedKey = uuid.uuid4().hex
         results = dbhelper.run_procedure('CALL generateKey(?,?)',
                                          [request.json.get('client_id'), str(generatedKey)])
         if type(results) == list:
@@ -44,9 +54,13 @@ class RecipeApi:
         error = apihelper.check_endpoint_info(request.json, ['username', 'password'])
         if(error != None):
             return make_response(jsonify(error), 400)
-        generatedToken = uuid.uuid4.hex()
+        salt = bcrypt.gensalt()
+        pwHashInput = bcrypt.hashpw(request.json.get('password').encode('utf8'), salt)
+        usernameInput = request.json.get('username')
+        validatedPW = ObjectInst.validatePW(pwHashInput,usernameInput)
+        generatedToken = uuid.uuid4().hex
         results = dbhelper.run_procedure('CALL clientLogin(?,?,?)',
-                                         [request.json.get('username'), request.json.get('password'), generatedToken])
+                                         [request.json.get('username'), validatedPW , generatedToken])
         if type(results) == list:
             return make_response(jsonify(results), 200)
         else:
@@ -57,7 +71,7 @@ class RecipeApi:
         error = apihelper.check_endpoint_info(request.json, ['username', 'password'])
         if(error != None):
             return make_response(jsonify(error), 400)
-        generatedToken = uuid.uuid4.hex()
+        generatedToken = uuid.uuid4().hex
         results = dbhelper.run_procedure('CALL adminLogin(?,?)',
                                          [request.json.get('username'), request.json.get('password'), generatedToken])
         if type(results) == list:
@@ -66,7 +80,7 @@ class RecipeApi:
             return make_response(jsonify(results), 400)
 
     @app.get('/api/getNutritionalProfile')
-    def createNutritionalProfile():
+    def getNutritionalProfile():
         error = apihelper.check_endpoint_info(request.args, ['recipe_id'])
         if(error != None):
             return make_response(jsonify(error),400)
