@@ -1,6 +1,7 @@
 from flask import Flask, request, make_response, jsonify,json
 import dbhelper,apihelper,dbcreds, uuid,bcrypt
 from flask_cors import CORS, cross_origin
+from createAdmin import adminSignup,endpoint
 
 
 app = Flask(__name__)
@@ -17,7 +18,19 @@ class RecipeApi:
             if pwHashInput:
                 return bcrypt.checkpw(results[0]['password'].encode('utf-8'), pwHashInput)
             
+    def validateAdminPW(self,pwHashInput,usernameInput):
+        results = dbhelper.run_procedure('CALL getAdminHashedPw(?)',
+                                         [usernameInput])
+        if type(results) == list:
+            if pwHashInput:
+                return bcrypt.checkpw(results[0]['password'].encode('utf-8'), pwHashInput)
     
+    @app.post(endpoint)
+    def runSignup():
+        results = adminSignup()
+        if(results):
+            return results
+
     @app.post('/api/clientSignup')
     def clientSignup():
         error = apihelper.check_endpoint_info(request.json, ['username', 'password', 'email'])
@@ -25,7 +38,6 @@ class RecipeApi:
             return make_response(jsonify(error), 400)
         salt = bcrypt.gensalt()
         hashed_pw = bcrypt.hashpw(request.json.get('password').encode('utf8'), salt)
-        generatedToken = uuid.uuid4().hex
         results = dbhelper.run_procedure('CALL clientSignup(?,?,?)',
                                          [request.json.get('username'), hashed_pw , request.json.get('email')])
         if type(results) == list:
@@ -36,13 +48,13 @@ class RecipeApi:
 
     @app.post('/api/generateKey')
     def generateKey():
-        error = apihelper.check_endpoint_info(request.json, ['client_id'])
+        error = apihelper.check_endpoint_info(request.json, ['client_id', 'token'])
         if(error != None):
             return make_response(jsonify(error), 400)
 
         generatedKey = uuid.uuid4().hex
-        results = dbhelper.run_procedure('CALL generateKey(?,?)',
-                                         [request.json.get('client_id'), str(generatedKey)])
+        results = dbhelper.run_procedure('CALL generateKey(?,?,?)',
+                                         [request.json.get('client_id'), str(generatedKey), request.json.get('token')])
         if type(results) == list:
             return make_response(jsonify(results), 200)
         else:
@@ -71,13 +83,18 @@ class RecipeApi:
         error = apihelper.check_endpoint_info(request.json, ['username', 'password'])
         if(error != None):
             return make_response(jsonify(error), 400)
+        salt = bcrypt.gensalt()
+        pwHashInput = bcrypt.hashpw(request.json.get('password').encode('utf8'), salt)
+        usernameInput = request.json.get('username')
+        validatedPW = ObjectInst.validateAdminPW(pwHashInput,usernameInput)
         generatedToken = uuid.uuid4().hex
-        results = dbhelper.run_procedure('CALL adminLogin(?,?)',
-                                         [request.json.get('username'), request.json.get('password'), generatedToken])
+        results = dbhelper.run_procedure('CALL adminLogin(?,?,?)',
+                                         [request.json.get('username'), validatedPW , generatedToken])
         if type(results) == list:
             return make_response(jsonify(results), 200)
         else:
             return make_response(jsonify(results), 400)
+
 
     @app.get('/api/getNutritionalProfile')
     def getNutritionalProfile():
@@ -142,7 +159,6 @@ class RecipeApi:
 
 
     @app.get('/api/searchByCuisine')
-    @cross_origin()
     def searchByCuisine():
 
         error = apihelper.check_endpoint_info(request.args, ['cuisine'])
