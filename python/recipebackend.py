@@ -5,8 +5,6 @@ from createAdmin import adminSignup,endpoint
 
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "https://tastetroveapi.cameron-ord.online"}})
-
 class RecipeApi:
     def __init__(self):
         print('initializing..')
@@ -111,11 +109,11 @@ class RecipeApi:
 
     @app.post('/api/createNutrionalProfile')
     def createNutritionalProfile():
-        error = apihelper.check_endpoint_info(request.json, ['recipe_id, protein, fat, carbs, calories, saturatedfat, sugars, salt'])
+        error = apihelper.check_endpoint_info(request.json, ['recipe_id, protein, fat, carbs, calories, saturatedfat, sugars, salt, token, admin_id'])
         if(error != None):
             return make_response(jsonify(error), 400)
-        results = dbhelper.run_procedure('CALL createNutritionalProfile (?,?,?,?,?,?,?,?)',
-            [request.json.get('recipe_id'), request.json.get('protein'), request.json.get('fat'), request.json.get('carbs'),request.json.get('calories'), request.json.get('saturatedfat'), request.json.get('sugars'), request.json.get('salt')])
+        results = dbhelper.run_procedure('CALL createNutritionalProfile (?,?,?,?,?,?,?,?,?,?)',
+            [request.json.get('recipe_id'), request.json.get('protein'), request.json.get('fat'), request.json.get('carbs'),request.json.get('calories'), request.json.get('saturatedfat'), request.json.get('sugars'), request.json.get('salt'), request.json.get('token'), request.json.get('admin_id')])
         if type(results) == list:
             return make_response(jsonify(results), 200)
         else:
@@ -135,11 +133,11 @@ class RecipeApi:
 
     @app.post('/api/createInstructions')
     def createInstructions():
-        error = apihelper.check_endpoint_info(request.json, ['recipeId', 'recipeprep', 'cooking', 'methods'])
+        error = apihelper.check_endpoint_info(request.json, ['recipeId', 'recipeprep', 'cooking', 'methods', 'token', 'admin_id'])
         if(error !=None):
             return make_response(jsonify(error), 400)
         results = dbhelper.run_procedure('CALL createInstructions(?,?,?,?)',
-                                          [request.json.get('recipeId'), request.json.get('recipeprep'), request.json.get('cooking'), request.json.get('methods')])
+                                          [request.json.get('recipeId'), request.json.get('recipeprep'), request.json.get('cooking'), request.json.get('methods'),request.json.get('token'), request.json.get('admin_id')])
         if type(results) == list:
             return make_response(jsonify(results),200)
         else:
@@ -164,8 +162,13 @@ class RecipeApi:
         error = apihelper.check_endpoint_info(request.args, ['cuisine'])
         if(error != None):
             return make_response(jsonify(error), 400)
-        results = dbhelper.run_procedure('CALL searchByCuisine(?)',
-                                          [request.args.get('cuisine')])
+       
+        error = apihelper.check_endpoint_info(request.headers, ['apikey'])
+        if(error != None):
+            return make_response(jsonify(error), 400)
+            
+        results = dbhelper.run_procedure('CALL searchByCuisine(?,?)',
+                                          [request.args.get('cuisine'), request.headers.get('apikey')])
         if type(results) == list:
             return make_response(jsonify(results), 200)
         else:
@@ -186,10 +189,9 @@ class RecipeApi:
     @app.post('/api/postRecipe')
     def postRecipe():
 
-        is_valid = apihelper.check_endpoint_info(request.form, ['title', 'desc', 'image_url', 'ingredients','isHealthy', 'cuisine'])
+        is_valid = apihelper.check_endpoint_info(request.form, ['title', 'desc', 'image_url', 'ingredients','isHealthy', 'cuisine', 'token', 'admin_id'])
 
         if(is_valid != None):
-            print('requests bad')
             return make_response(jsonify(is_valid), 400)
 
         is_valid = apihelper.check_endpoint_info(request.files, ['image'])
@@ -205,7 +207,7 @@ class RecipeApi:
 
             if filename:
                 concatURL = request.form.get('image_url') + filename
-            result = dbhelper.run_procedure('CALL createRecipe(?,?,?,?,?,?)', [request.form.get('title'), request.form.get('desc'), concatURL ,request.form.get('ingredients'), request.form.get('isHealthy'), request.form.get('cuisine')])
+            result = dbhelper.run_procedure('CALL createRecipe(?,?,?,?,?,?,?,?)', [request.form.get('title'), request.form.get('desc'), concatURL ,request.form.get('ingredients'), request.form.get('isHealthy'), request.form.get('cuisine'), request.form.get('token'), request.form.get('admin_id')])
             #if the task is sucessful, appends a success message to the empty results list and then returns the results
             if (type(results)==list):
                 results.append('Success')
@@ -232,7 +234,7 @@ if(dbcreds.production_mode == True):
     bjoern.run(app,'0.0.0.0', 5301)
 else:
    from flask_cors import CORS
-   CORS(app, resources={r"/api/*": {"origins": "https://tastetroveapi.cameron-ord.online"}})
+   CORS(app)
    print()
    print('----Running in Testing Mode----')
    print()
