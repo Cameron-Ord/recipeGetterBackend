@@ -9,6 +9,15 @@ class RecipeApi:
     def __init__(self):
         print('initializing..')
 
+    def checkData(self):
+        print()
+
+    def checkArgs(self):
+        print()
+
+    def checkHeaders(self):
+        print()
+
     def validatePW(self,pwHashInput,usernameInput):
         results = dbhelper.run_procedure('CALL getHashedPw(?)',
                                          [usernameInput])
@@ -99,8 +108,13 @@ class RecipeApi:
         error = apihelper.check_endpoint_info(request.args, ['recipe_id'])
         if(error != None):
             return make_response(jsonify(error),400)
-        results = dbhelper.run_procedure('CALL getNutrition(?)',
-                                         [request.args.get('recipe_id')])
+        
+        error = apihelper.check_endpoint_info(request.headers, ['apikey'])
+        if(error != None):
+            return make_response(jsonify(error), 400)
+            
+        results = dbhelper.run_procedure('CALL getNutrition(?,?)',
+                                         [request.args.get('recipe_id'), request.headers.get('apikey')])
         if type(results) == list:
             return make_response(jsonify(results),200)
         else:
@@ -121,11 +135,16 @@ class RecipeApi:
 
     @app.get('/api/getInstructions')
     def getInstructions():
-        error = apihelper.check_endpoint_info(request.args, ['id'])
+        error = apihelper.check_endpoint_info(request.args, ['recipe_id'])
         if(error != None):
             return make_response(jsonify(error), 400)
-        results = dbhelper.run_procedure('CALL getInstructions(?)',
-                                          [request.args.get('id')])
+        
+        error = apihelper.check_endpoint_info(request.headers, ['apikey'])
+        if(error != None):
+            return make_response(jsonify(error), 400)
+            
+        results = dbhelper.run_procedure('CALL getInstructions(?,?)',
+                                          [request.args.get('recipe_id'), request.headers.get('apikey')])
         if type(results) == list:
             return make_response(jsonify(results),200)
         else:
@@ -148,8 +167,13 @@ class RecipeApi:
         error = apihelper.check_endpoint_info(request.args, ['title'])
         if(error != None):
             return make_response(jsonify(error), 400)
-        results = dbhelper.run_procedure('CALL searchRecipe(?)',
-                                        [request.args.get('title')])
+
+        error = apihelper.check_endpoint_info(request.headers, ['apikey'])
+        if(error != None):
+            return make_response(jsonify(error), 400)
+
+        results = dbhelper.run_procedure('CALL searchRecipe(?,?)',
+                                        [request.args.get('title'), request.headers.get('apikey')])
         if type(results) == list:
             return make_response(jsonify(results), 200)
         else:
@@ -179,8 +203,13 @@ class RecipeApi:
         error = apihelper.check_endpoint_info(request.args, ['name'])
         if(error != None):
             return make_response(jsonify(error), 400)
-        results = dbhelper.run_procedure('CALL getRecipeId(?)',
-                                         [request.args.get('name')])
+        
+        error = apihelper.check_endpoint_info(request.headers, ['apikey'])
+        if(error != None):
+            return make_response(jsonify(error), 400)
+            
+        results = dbhelper.run_procedure('CALL getRecipeId(?,?)',
+                                         [request.args.get('name'), request.headers.get('apikey')])
         if type(results) == list:
             return make_response(jsonify(results),200)
         else:
@@ -233,9 +262,9 @@ if(dbcreds.production_mode == True):
     import bjoern #type: ignore
     bjoern.run(app,'0.0.0.0', 5301)
 else:
-   from flask_cors import CORS
-   CORS(app)
-   print()
-   print('----Running in Testing Mode----')
-   print()
-   app.run(debug=True)
+    from flask_cors import CORS
+    CORS(app)
+    print()
+    print('----Running in Testing Mode----')
+    print()
+    app.run(debug=True)
