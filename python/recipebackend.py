@@ -39,6 +39,7 @@ class RecipeApi:
             return results
 
     @app.post('/api/clientSignup')
+    @cross_origin
     def clientSignup():
         error = apihelper.check_endpoint_info(request.json, ['username', 'password', 'email'])
         if(error != None):
@@ -69,6 +70,7 @@ class RecipeApi:
 
 
     @app.post('/api/clientLogin')
+    @cross_origin
     def clientLogin():
         error = apihelper.check_endpoint_info(request.json, ['username', 'password'])
         if(error != None):
@@ -86,6 +88,7 @@ class RecipeApi:
             return make_response(jsonify(results), 400)
 
     @app.post('/api/adminLogin')
+    @cross_origin
     def adminLogin():
         error = apihelper.check_endpoint_info(request.json, ['username', 'password'])
         if(error != None):
@@ -104,6 +107,7 @@ class RecipeApi:
 
 
     @app.get('/api/getNutritionalProfile')
+    @cross_origin
     def getNutritionalProfile():
         error = apihelper.check_endpoint_info(request.args, ['recipe_id'])
         if(error != None):
@@ -134,6 +138,7 @@ class RecipeApi:
             return make_response(jsonify(results), 400)
 
     @app.get('/api/getInstructions')
+    @cross_origin
     def getInstructions():
         error = apihelper.check_endpoint_info(request.args, ['recipe_id'])
         if(error != None):
@@ -163,6 +168,7 @@ class RecipeApi:
             return make_response(jsonify(results), 400)
 
     @app.get('/api/searchByName')
+    @cross_origin
     def searchByName():
         error = apihelper.check_endpoint_info(request.args, ['title'])
         if(error != None):
@@ -181,8 +187,8 @@ class RecipeApi:
 
 
     @app.get('/api/searchByCuisine')
+    @cross_origin
     def searchByCuisine():
-
         error = apihelper.check_endpoint_info(request.args, ['cuisine'])
         if(error != None):
             return make_response(jsonify(error), 400)
@@ -199,6 +205,7 @@ class RecipeApi:
             return make_response(jsonify(results), 400)
 
     @app.get('/api/getRecipeId')
+    @cross_origin
     def getRecipeId():
         error = apihelper.check_endpoint_info(request.args, ['name'])
         if(error != None):
