@@ -38,6 +38,18 @@ class RecipeApi:
         if(results):
             return results
 
+    @app.get('/api/getClientInfo')
+    @cross_origin
+    def getClientInfo():
+        error = apihelper.check_endpoint_info(request.args, ['client_id'])
+        if(error != None):
+            return make_response(jsonify(error), 400)
+        results = dbhelper.run_procedure('CALL getClientInfo(?)', request.args.get('client_id'))
+        if(type(results)) == list:
+            return make_response(jsonify(results), 200)
+        else:
+            return make_response(jsonify(results), 400)
+
     @app.post('/api/clientSignup')
     @cross_origin()
     def clientSignup():
