@@ -33,18 +33,19 @@ class RecipeApi:
                 return bcrypt.checkpw(results[0]['password'].encode('utf-8'), pwHashInput)
     
     @app.post(endpoint)
+    @cross_origin()
     def runSignup():
         results = adminSignup()
         if(results):
             return results
 
     @app.get('/api/getClientInfo')
-    @cross_origin
+    @cross_origin()
     def getClientInfo():
         error = apihelper.check_endpoint_info(request.args, ['client_id'])
         if(error != None):
             return make_response(jsonify(error), 400)
-        results = dbhelper.run_procedure('CALL getClientInfo(?)', request.args.get('client_id'))
+        results = dbhelper.run_procedure('CALL getClientInfo(?)', [request.args.get('client_id')])
         if(type(results)) == list:
             return make_response(jsonify(results), 200)
         else:
@@ -67,6 +68,7 @@ class RecipeApi:
 
 
     @app.post('/api/generateKey')
+    @cross_origin()
     def generateKey():
         error = apihelper.check_endpoint_info(request.json, ['client_id', 'token'])
         if(error != None):
@@ -117,6 +119,19 @@ class RecipeApi:
         else:
             return make_response(jsonify(results), 400)
 
+
+    @app.get('/api/fetchUserKey')
+    @cross_origin()
+    def fetchUserKey():
+        error = apihelper.check_endpoint_info(request.args, ['client_id','session_token'])
+        if(error != None):
+            return make_response(jsonify(error),400)
+        results = dbhelper.run_procedure('CALL fetchUserKey(?,?)',
+        [request.args.get('client_id'), request.args.get('session_token')])
+        if type(results) == list:
+            return make_response(jsonify(results),200)
+        else:
+            return make_response(jsonify(results),400)
 
     @app.get('/api/getNutritionalProfile')
     @cross_origin()
@@ -209,15 +224,15 @@ class RecipeApi:
         if(error != None):
             return make_response(jsonify(error), 400)
             
-        results = dbhelper.run_procedure('CALL searchByCuisine(?,?)',
-                                          [request.args.get('cuisine'), request.headers.get('apikey')])
+        results = dbhelper.run_procedure('CALL searchByCuisine(?,?,?)',
+                                          [request.args.get('cuisine'), request.headers.get('apikey'), request.args.get('isHealthy')])
         if type(results) == list:
             return make_response(jsonify(results), 200)
         else:
             return make_response(jsonify(results), 400)
 
     @app.get('/api/getRecipeId')
-    @cross_origin
+    @cross_origin()
     def getRecipeId():
         error = apihelper.check_endpoint_info(request.args, ['name'])
         if(error != None):
